@@ -1,0 +1,548 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sig Infinity AI</title>
+<style>
+  :root {
+    --deep: #050916;
+    --panel: rgba(13, 21, 48, 0.72);
+    --border: #24356e;
+    --accent: #4da3ff;
+    --gold: #e8b64a;
+    --green: #35d17a;
+    --red: #ff5566;
+    --text: #dbe6ff;
+    --muted: #8092c4;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+    color: var(--text);
+    background: #030510 url('assets/sig_infinity_ai.png') center top / cover no-repeat fixed;
+    min-height: 100vh;
+  }
+  .overlay {
+    min-height: 100vh;
+    background: linear-gradient(180deg, rgba(3,5,16,0.55) 0%, rgba(3,5,16,0.85) 55%, rgba(3,5,16,0.97) 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 60px;
+  }
+  header { text-align: center; margin-bottom: 8px; }
+  header h1 {
+    font-size: 34px;
+    letter-spacing: 2px;
+    background: linear-gradient(180deg, #fff, var(--accent) 70%, var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 0 30px rgba(77,163,255,0.35);
+  }
+  header p { color: var(--muted); font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; }
+  header .subtitle {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    margin-top: 12px;
+    max-width: 400px;
+    line-height: 1.5;
+  }
+
+  .quota-bar {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--muted);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .quota-bar button {
+    background: none; border: none; color: var(--gold); cursor: pointer; font-size: 12px; text-decoration: underline;
+  }
+
+  main {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 34px;
+  }
+
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 26px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 0 40px rgba(0,20,60,0.5);
+  }
+
+  .markets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .market-btn {
+    background: rgba(10,16,38,0.7);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    padding: 14px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+    position: relative;
+  }
+  .market-btn.selected {
+    border-color: var(--accent);
+    background: rgba(30,55,120,0.55);
+    box-shadow: 0 0 14px rgba(77,163,255,0.35);
+  }
+  .market-btn.hot {
+    border-color: var(--gold);
+    animation: glow 1.4s ease-in-out infinite;
+  }
+  @keyframes glow {
+    0%, 100% {
+      box-shadow: 0 0 8px rgba(232,182,74,0.3);
+      border-color: rgba(232,182,74,0.6);
+    }
+    50% {
+      box-shadow: 0 0 28px rgba(232,182,74,0.9);
+      border-color: #e8b64a;
+    }
+  }
+  .market-btn .hot-dot {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e8b64a;
+    box-shadow: 0 0 6px #e8b64a;
+    animation: pulse-dot 1s ease-in-out infinite;
+    display: none;
+  }
+  .market-btn.hot .hot-dot { display: block; }
+  @keyframes pulse-dot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.7; }
+  }
+
+  .generate-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    border: none;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    background: linear-gradient(180deg, var(--accent), #1f56b8);
+    color: #fff;
+    box-shadow: 0 4px 18px rgba(77,163,255,0.35);
+  }
+  .generate-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .status-note { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; min-height: 16px; }
+
+  .generating {
+    display: none;
+    text-align: center;
+    margin-top: 26px;
+  }
+  .generating.active { display: block; }
+  .generating img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid var(--gold);
+    box-shadow: 0 0 40px rgba(232,182,74,0.45);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 40px rgba(232,182,74,0.45); }
+    50% { transform: scale(1.04); box-shadow: 0 0 60px rgba(232,182,74,0.75); }
+  }
+  .generating p {
+    margin-top: 14px;
+    letter-spacing: 2px;
+    font-size: 13px;
+    color: var(--gold);
+  }
+
+  .result {
+    display: none;
+    margin-top: 26px;
+  }
+  .result.active { display: block; }
+  .result-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .result-header img {
+    width: 100px;
+    height: 100px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 2px solid var(--border);
+  }
+  .bias-tag {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .bias-tag.BUY { color: var(--green); }
+  .bias-tag.SELL { color: var(--red); }
+  .bias-tag.WAIT { color: var(--muted); }
+  .result-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+  /* Countdown */
+  .countdown-panel {
+    margin-top: 20px;
+    padding: 18px;
+    background: rgba(232,182,74,0.08);
+    border: 1px solid rgba(232,182,74,0.4);
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(232,182,74,0.2);
+  }
+  .countdown-panel.expired {
+    background: rgba(255,85,102,0.08);
+    border-color: rgba(255,85,102,0.5);
+    box-shadow: 0 0 20px rgba(255,85,102,0.2);
+  }
+  .countdown-label {
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .countdown-time {
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--gold);
+    letter-spacing: 2px;
+    font-variant-numeric: tabular-nums;
+    animation: countdown-pulse 1s ease-in-out infinite;
+  }
+  .countdown-panel.expired .countdown-time {
+    color: var(--red);
+    animation: none;
+  }
+  @keyframes countdown-pulse {
+    0%, 100% { text-shadow: 0 0 10px rgba(232,182,74,0.4); }
+    50% { text-shadow: 0 0 24px rgba(232,182,74,0.9); }
+  }
+  .countdown-note {
+    font-size: 13px;
+    color: var(--text);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+
+  .wait-panel {
+    text-align: center;
+    padding: 24px 12px;
+  }
+  .wait-panel h3 {
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .wait-panel p {
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.6;
+  }
+
+  .disclaimer {
+    margin-top: 26px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    max-width: 420px;
+    line-height: 1.6;
+  }
+
+  .modal-backdrop {
+    display: none;
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    align-items: center; justify-content: center; z-index: 10;
+  }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px;
+    padding: 24px; width: 280px; text-align: center;
+  }
+  .modal input {
+    width: 100%; padding: 10px; margin: 14px 0; border-radius: 8px; border: 1px solid var(--border);
+    background: rgba(255,255,255,0.05); color: var(--text);
+  }
+  .modal button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; cursor: pointer; }
+  .modal .close-link { display: block; margin-top: 10px; font-size: 12px; color: var(--muted); cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="overlay">
+
+  <header>
+    <h1>SIG-INFINITY AI</h1>
+    <p>5-MINUTE BINARY TRADING SIGNALS</p>
+    <div class="subtitle">
+      SIG INFINITY AI produces 5-minute binary trading signals to execute on Quotex.
+    </div>
+  </header>
+
+  <div class="quota-bar">
+    <span id="quotaText">Loading quota…</span>
+    <button onclick="openAdmin()">Admin</button>
+  </div>
+
+  <main>
+    <div class="card">
+      <div class="markets" id="marketGrid">
+        <button class="market-btn" data-symbol="EURUSD"><span class="hot-dot"></span>EUR / USD</button>
+        <button class="market-btn" data-symbol="GBPUSD"><span class="hot-dot"></span>GBP / USD</button>
+        <button class="market-btn" data-symbol="XAUUSD"><span class="hot-dot"></span>XAU / USD</button>
+        <button class="market-btn" data-symbol="AUDUSD"><span class="hot-dot"></span>AUD / USD</button>
+      </div>
+
+      <button class="generate-btn" id="generateBtn" disabled>SELECT A MARKET</button>
+      <div class="status-note" id="statusNote"></div>
+
+      <div class="generating" id="generating">
+        <img src="assets/vault.png" alt="Analyzing">
+        <p>SIGNAL GENERATING…</p>
+      </div>
+
+      <div class="result" id="result"></div>
+    </div>
+
+    <p class="disclaimer">
+      Sig-Infinity AI reports technical-analysis trend and momentum confluence on
+      live market data. Output is for informational purposes only, not financial
+      advice, and not a guarantee of any outcome.
+    </p>
+  </main>
+</div>
+
+<div class="modal-backdrop" id="adminModal">
+  <div class="modal">
+    <strong>Admin Access</strong>
+    <input type="password" id="passcodeInput" placeholder="Admin passcode">
+    <button onclick="submitPasscode()">Unlock</button>
+    <span class="close-link" onclick="closeAdmin()">Cancel</span>
+  </div>
+</div>
+
+<script>
+  const API_BASE = "https://desktop-aalpnd1.tail56508e.ts.net";
+  const ENTRY_WINDOW_SECONDS = 35;
+
+  let selectedSymbol = null;
+  let countdownInterval = null;
+
+  document.querySelectorAll('.market-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.market-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedSymbol = btn.dataset.symbol;
+      const genBtn = document.getElementById('generateBtn');
+      genBtn.disabled = false;
+      genBtn.textContent = `GENERATE SIGNAL — ${btn.textContent.replace('●','').trim()}`;
+      document.getElementById('result').classList.remove('active');
+      if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+    });
+  });
+
+  document.getElementById('generateBtn').addEventListener('click', generateSignal);
+
+  async function refreshQuota() {
+    try {
+      const r = await fetch(`${API_BASE}/api/quota`, { credentials: 'include' });
+      const q = await r.json();
+      document.getElementById('quotaText').textContent = q.is_admin
+        ? 'Admin — unlimited analyses'
+        : `${q.remaining} / ${q.limit} analyses left today`;
+    } catch (e) {
+      document.getElementById('quotaText').textContent = 'Backend not reachable';
+    }
+  }
+
+  async function pollHotMarkets() {
+    const symbols = ['EURUSD', 'GBPUSD', 'XAUUSD', 'AUDUSD'];
+    for (const sym of symbols) {
+      try {
+        const r = await fetch(`${API_BASE}/api/peek/${sym}`);
+        if (!r.ok) continue;
+        const d = await r.json();
+        const btn = document.querySelector(`.market-btn[data-symbol="${sym}"]`);
+        if (!btn) continue;
+        if (d.hot) btn.classList.add('hot');
+        else btn.classList.remove('hot');
+      } catch (e) { /* ignore */ }
+    }
+  }
+
+  async function generateSignal() {
+    if (!selectedSymbol) return;
+    const genBtn = document.getElementById('generateBtn');
+    genBtn.disabled = true;
+    document.getElementById('result').classList.remove('active');
+    document.getElementById('generating').classList.add('active');
+    document.getElementById('statusNote').textContent = '';
+    if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
+
+    const startTime = Date.now();
+    const MIN_DISPLAY_MS = 20000;
+
+    try {
+      const r = await fetch(`${API_BASE}/api/analyze/${selectedSymbol}`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await r.json();
+
+      const elapsed = Date.now() - startTime;
+      const minWait = Math.max(0, MIN_DISPLAY_MS - elapsed);
+      if (minWait > 0) {
+        await new Promise(resolve => setTimeout(resolve, minWait));
+      }
+
+      document.getElementById('generating').classList.remove('active');
+      genBtn.disabled = false;
+
+      if (!data.ok) {
+        if (data.market_closed) {
+          renderMarketClosed();
+        } else {
+          document.getElementById('statusNote').textContent = data.message || 'Unable to analyze right now.';
+        }
+        return;
+      }
+      renderResult(data);
+      refreshQuota();
+    } catch (e) {
+      document.getElementById('generating').classList.remove('active');
+      genBtn.disabled = false;
+      document.getElementById('statusNote').textContent = 'Could not reach the Sig-Infinity server.';
+    }
+  }
+
+  function renderResult(data) {
+    const resEl = document.getElementById('result');
+
+    if (data.bias === 'WAIT') {
+      resEl.innerHTML = `
+        <div class="wait-panel">
+          <h3>WAIT</h3>
+          <p>Conditions have not aligned yet.<br>Try again shortly.</p>
+        </div>
+      `;
+      resEl.classList.add('active');
+      return;
+    }
+
+    const img = data.bias === 'BUY' ? 'assets/buy.jpg' : 'assets/sell.jpg';
+
+    resEl.innerHTML = `
+      <div class="result-header">
+        <img src="${img}" alt="${data.bias}">
+        <div>
+          <div class="bias-tag ${data.bias}">${data.bias} SIGNAL</div>
+          <div class="result-sub">${data.symbol} · Generated at ${new Date(data.generated_at * 1000).toLocaleTimeString()}</div>
+        </div>
+      </div>
+      <div class="countdown-panel" id="countdownPanel">
+        <div class="countdown-label">Entry Window</div>
+        <div class="countdown-time" id="countdownTime">${ENTRY_WINDOW_SECONDS}</div>
+        <div class="countdown-note" id="countdownNote">You have ${ENTRY_WINDOW_SECONDS} seconds to enter your trade.</div>
+      </div>
+    `;
+    resEl.classList.add('active');
+
+    startCountdown(ENTRY_WINDOW_SECONDS);
+  }
+
+  function startCountdown(seconds) {
+    if (countdownInterval) { clearInterval(countdownInterval); }
+    let remaining = seconds;
+    const timeEl = document.getElementById('countdownTime');
+    const noteEl = document.getElementById('countdownNote');
+    const panelEl = document.getElementById('countdownPanel');
+
+    countdownInterval = setInterval(() => {
+      remaining--;
+      if (remaining <= 0) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        panelEl.classList.add('expired');
+        timeEl.textContent = '0';
+        noteEl.textContent = 'Entry window closed. Wait for the next signal.';
+        return;
+      }
+      timeEl.textContent = remaining;
+      noteEl.textContent = `You have ${remaining} seconds to enter your trade.`;
+    }, 1000);
+  }
+
+  function renderMarketClosed() {
+    const resEl = document.getElementById('result');
+    resEl.innerHTML = `
+      <div class="wait-panel">
+        <h3>MARKETS UNAVAILABLE</h3>
+        <p>Markets are closed. Try again once they reopen.</p>
+      </div>
+    `;
+    resEl.classList.add('active');
+  }
+
+  function openAdmin() { document.getElementById('adminModal').classList.add('active'); }
+  function closeAdmin() { document.getElementById('adminModal').classList.remove('active'); }
+
+  async function submitPasscode() {
+    const passcode = document.getElementById('passcodeInput').value;
+    try {
+      const r = await fetch(`${API_BASE}/api/admin/unlock`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ passcode }),
+      });
+      const data = await r.json();
+      if (data.ok) {
+        closeAdmin();
+        refreshQuota();
+      } else {
+        alert(data.message || 'Incorrect passcode.');
+      }
+    } catch (e) {
+      alert('Could not reach the Sig-Infinity server.');
+    }
+  }
+
+  (async function init() {
+    refreshQuota();
+    pollHotMarkets();
+    setInterval(pollHotMarkets, 15000);
+    setInterval(refreshQuota, 60000);
+  })();
+</script>
+</body>
+</html>
+
+

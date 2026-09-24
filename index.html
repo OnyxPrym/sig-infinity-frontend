@@ -349,21 +349,21 @@
     <main>
       <div class="top-bar">
         <div class="welcome">
-          <strong id="userEmail">â€”</strong>
+          <strong id="userEmail">-</strong>
           <button class="logout-btn" onclick="logout()">Logout</button>
           <button class="logout-btn" onclick="openAdmin()" style="margin-left:6px; border-color: var(--gold); color: var(--gold);">Admin</button>
         </div>
-        <div class="quota-badge" id="quotaBadge">Loadingâ€¦</div>
+        <div class="quota-badge" id="quotaBadge">Loading</div>
       </div>
 
       <div class="card">
         <div class="markets" id="marketGrid">
           <button class="market-btn" data-symbol="XAUUSD"><span class="hot-dot"></span>GOLD OTC</button>
-          <button class="market-btn" data-symbol="EURUSD"><span class="hot-dot"></span>EURUSD OTC</button>
-          <button class="market-btn" data-symbol="USDJPY"><span class="hot-dot"></span>USDJPY OTC</button>
+          <button class="market-btn" data-symbol="EURUSD"><span class="hot-dot"></span>EURUSD</button>
+          <button class="market-btn" data-symbol="USDJPY"><span class="hot-dot"></span>USDJPY</button>
           <button class="market-btn" data-symbol="XAGUSD"><span class="hot-dot"></span>SILVER OTC</button>
-          <button class="market-btn" data-symbol="GBPUSD"><span class="hot-dot"></span>GBPUSD OTC</button>
-          <button class="market-btn" data-symbol="AUDCHF"><span class="hot-dot"></span>AUDCHF OTC</button>
+          <button class="market-btn" data-symbol="GBPUSD"><span class="hot-dot"></span>GBPUSD</button>
+          <button class="market-btn" data-symbol="AUDCHF"><span class="hot-dot"></span>AUDCHF</button>
         </div>
         <div class="approaching-note" id="approachingNote"></div>
 
@@ -373,7 +373,7 @@
 
         <div class="generating" id="generating">
           <img src="assets/vault.png" alt="Analyzing">
-          <p>SIGNAL GENERATINGâ€¦</p>
+          <p>SIGNAL GENERATING</p>
         </div>
 
         <div class="result" id="result"></div>
@@ -438,7 +438,7 @@
     if (password.length < 6) { errEl.textContent = "Password must be at least 6 characters."; return; }
 
     btn.disabled = true;
-    btn.textContent = "â€¦";
+    btn.textContent = "";
     errEl.textContent = "";
 
     const endpoint = currentTab === "login" ? "/api/auth/login" : "/api/auth/register";
@@ -518,9 +518,9 @@
 
   function updateQuotaBadge() {
     const badge = document.getElementById("quotaBadge");
-    if (!user) { badge.textContent = "â€”"; return; }
+    if (!user) { badge.textContent = "-"; return; }
     if (user.is_admin) {
-      badge.textContent = "Admin â€” unlimited";
+      badge.textContent = "Admin - unlimited";
       badge.classList.add("admin");
     } else {
       badge.textContent = `${user.remaining} / ${user.limit} left today`;
@@ -545,7 +545,7 @@
       selectedSymbol = btn.dataset.symbol;
       const genBtn = document.getElementById('generateBtn');
       genBtn.disabled = false;
-      genBtn.textContent = `GENERATE SIGNAL â€” ${btn.textContent.replace('â—','').trim()}`;
+      genBtn.textContent = `GENERATE SIGNAL - ${btn.textContent.replace('-','').trim()}`;
       document.getElementById('result').classList.remove('active');
       if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
     });
@@ -574,7 +574,7 @@
         if (d.ready) {
           if (!approachingSummary) approachingSummary = `${sym} signal firing NOW`;
         } else {
-          if (!approachingSummary) approachingSummary = `${sym} setup forming â€” get ready`;
+          if (!approachingSummary) approachingSummary = `${sym} setup forming - get ready`;
         }
       } catch (e) {}
     }
@@ -644,13 +644,13 @@
 
     if (data.bias === 'BUY' || data.bias === 'SELL') {
       const img = data.bias === 'BUY' ? 'assets/buy.jpg' : 'assets/sell.jpg';
-      const badgeLabel = tier === 'A+' ? 'âœ… VERIFIED SETUP' : `âœ… TIER ${tier} SETUP`;
+      const badgeLabel = tier === 'A+' ? 'OK VERIFIED SETUP' : `OK TIER ${tier} SETUP`;
       resEl.innerHTML = `
         <div class="signal-card${tierClass}">
           <div class="signal-badge${tierClass}">${badgeLabel}</div>
           <img src="${img}" alt="${data.bias}" style="width:110px;height:110px;border-radius:14px;object-fit:cover;margin:6px 0 8px;border:2px solid currentColor;">
           <div class="signal-direction ${data.bias}">${data.bias}</div>
-          <div class="signal-meta">${data.symbol} OTC Â· 5-MIN</div>
+          <div class="signal-meta">${data.symbol} - 5-MIN</div>
           <div class="signal-reason">${data.reason || ''}</div>
         </div>
         <div class="countdown-panel" id="countdownPanel">
@@ -672,7 +672,7 @@
     resEl.innerHTML = `
       <div class="wait-panel">
         <h3>NO VALID SIGNAL DETECTED YET</h3>
-        <p>Waiting for the next qualifying setup.<br>Try again in a moment or keep this page open â€” a market button will glow when a setup is forming.</p>
+        <p>Waiting for the next qualifying setup.<br>Try again in a moment or keep this page open - a market button will glow when a setup is forming.</p>
       </div>
     `;
     resEl.classList.add('active');
@@ -770,11 +770,11 @@ async function loadHistory() {
         const dirClass = s.direction === 'BUY' ? 'BUY' : 'SELL';
         const resLabel = s.resolved ? (s.result || 'PENDING') : 'PENDING';
         const resClass = s.resolved ? (s.result || 'PENDING') : 'PENDING';
-        const entry = s.entry_time ? new Date(s.entry_time).toLocaleString() : 'â€”';
+        const entry = s.entry_time ? new Date(s.entry_time).toLocaleString() : '-';
         return `
           <div class="history-item ${resClass}">
             <div class="history-left">
-              <span class="sym">${s.symbol} OTC</span>
+              <span class="sym">${s.symbol}</span>
               <span class="time">${entry}</span>
             </div>
             <div class="history-right">
@@ -802,7 +802,7 @@ setInterval(() => {
   })();
 </script>
 <div style="width:100%; text-align:center; margin-top:40px; padding:20px 0; font-size:11px; color:#8092c4; letter-spacing:1px;">
-  Â© 2026 Karanka Multiverse. All rights reserved.
+  ( 2026 Karanka Multiverse. All rights reserved.
 </div>
 </body>
 </html>

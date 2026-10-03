@@ -519,6 +519,7 @@
     setInterval(refreshMarketStatus, 60000);
     pollApproaching();
     setInterval(pollApproaching, 4000);
+    updateMarketLabels();
     setInterval(refreshMeAndQuota, 60000);
   }
 
@@ -824,6 +825,45 @@ async function refreshMarketStatus() {
       showAuthScreen();
     }
   })();
+
+  // === DYNAMIC MARKET LABELS (OTC/LIVE) ===
+  const MARKET_LABELS = {
+    "XAUUSD": "GOLD",
+    "XAGUSD": "SILVER",
+    "EURUSD": "EURUSD",
+    "USDJPY": "USDJPY",
+    "GBPUSD": "GBPUSD",
+    "AUDCHF": "AUDCHF"
+  };
+
+  async function updateMarketLabels() {
+    try {
+      const r = await fetch(`${API_BASE}/api/status`);
+      if (!r.ok) return;
+      const data = await r.json();
+      const feeds = data.feed_types || {};
+      for (const sym of Object.keys(MARKET_LABELS)) {
+        const btn = document.querySelector(`.market-btn[data-symbol="${sym}"]`);
+        if (!btn) continue;
+        const base = MARKET_LABELS[sym];
+        const feed = feeds[sym] || "LIVE";
+        const label = feed === "OTC" ? `${base} OTC` : base;
+        // Preserve the hot-dot span
+        const dot = btn.querySelector('.hot-dot');
+        if (dot) {
+          btn.innerHTML = '';
+          btn.appendChild(dot);
+          btn.appendChild(document.createTextNode(label));
+        } else {
+          btn.textContent = label;
+        }
+      }
+    } catch (e) { /* silent */ }
+  }
+
+  // Run once on load and every 30 seconds
+  document.addEventListener("DOMContentLoaded", updateMarketLabels);
+  setInterval(updateMarketLabels, 30000);
 </script>
 <div style="width:100%; text-align:center; margin-top:40px; padding:20px 0; font-size:11px; color:#8092c4; letter-spacing:1px;">
    2026 Karanka Multiverse. All rights reserved.

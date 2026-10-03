@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -314,6 +314,10 @@
   .history-right .result.LOST { color: var(--red); }
   .history-right .result.PENDING { color: var(--gold); }
   .history-empty { text-align: center; padding: 30px; color: var(--muted); font-size: 13px; }
+
+.mkt-mode { display:inline-block; font-size:9px; font-weight:800; letter-spacing:1px; padding:1px 6px; border-radius:8px; margin-left:6px; }
+.mkt-mode.live { background: rgba(53,209,122,0.18); color: var(--green); border: 1px solid rgba(53,209,122,0.5); }
+.mkt-mode.otc  { background: rgba(232,182,74,0.18); color: var(--gold);  border: 1px solid rgba(232,182,74,0.5); }
 </style>
 </head>
 <body>
@@ -349,21 +353,21 @@
     <main>
       <div class="top-bar">
         <div class="welcome">
-          <strong id="userEmail">-</strong>
+          <strong id="userEmail">Ã¢â‚¬â€</strong>
           <button class="logout-btn" onclick="logout()">Logout</button>
           <button class="logout-btn" onclick="openAdmin()" style="margin-left:6px; border-color: var(--gold); color: var(--gold);">Admin</button>
         </div>
-        <div class="quota-badge" id="quotaBadge">Loading</div>
+        <div class="quota-badge" id="quotaBadge">LoadingÃ¢â‚¬Â¦</div>
       </div>
 
       <div class="card">
         <div class="markets" id="marketGrid">
-          <button class="market-btn" data-symbol="XAUUSD"><span class="hot-dot"></span>GOLD OTC</button>
-          <button class="market-btn" data-symbol="EURUSD"><span class="hot-dot"></span>EURUSD</button>
-          <button class="market-btn" data-symbol="USDJPY"><span class="hot-dot"></span>USDJPY</button>
-          <button class="market-btn" data-symbol="XAGUSD"><span class="hot-dot"></span>SILVER OTC</button>
-          <button class="market-btn" data-symbol="GBPUSD"><span class="hot-dot"></span>GBPUSD</button>
-          <button class="market-btn" data-symbol="AUDCHF"><span class="hot-dot"></span>AUDCHF</button>
+          <button class="market-btn" data-symbol="XAUUSD"><span class="hot-dot"></span><span class="mkt-label">GOLD OTC</span></button>
+          <button class="market-btn" data-symbol="EURUSD"><span class="hot-dot"></span><span class="mkt-label">EURUSD OTC</span></button>
+          <button class="market-btn" data-symbol="USDJPY"><span class="hot-dot"></span><span class="mkt-label">USDJPY OTC</span></button>
+          <button class="market-btn" data-symbol="XAGUSD"><span class="hot-dot"></span><span class="mkt-label">SILVER OTC</span></button>
+          <button class="market-btn" data-symbol="GBPUSD"><span class="hot-dot"></span><span class="mkt-label">GBPUSD OTC</span></button>
+          <button class="market-btn" data-symbol="AUDCHF"><span class="hot-dot"></span><span class="mkt-label">AUDCHF OTC</span></button>
         </div>
         <div class="approaching-note" id="approachingNote"></div>
 
@@ -373,7 +377,7 @@
 
         <div class="generating" id="generating">
           <img src="assets/vault.png" alt="Analyzing">
-          <p>SIGNAL GENERATING</p>
+          <p>SIGNAL GENERATINGÃ¢â‚¬Â¦</p>
         </div>
 
         <div class="result" id="result"></div>
@@ -438,7 +442,7 @@
     if (password.length < 6) { errEl.textContent = "Password must be at least 6 characters."; return; }
 
     btn.disabled = true;
-    btn.textContent = "";
+    btn.textContent = "Ã¢â‚¬Â¦";
     errEl.textContent = "";
 
     const endpoint = currentTab === "login" ? "/api/auth/login" : "/api/auth/register";
@@ -511,6 +515,8 @@
     document.getElementById("userEmail").textContent = me.email;
     updateQuotaBadge();
     showAppScreen();
+    refreshMarketStatus();
+    setInterval(refreshMarketStatus, 60000);
     pollApproaching();
     setInterval(pollApproaching, 4000);
     setInterval(refreshMeAndQuota, 60000);
@@ -518,9 +524,9 @@
 
   function updateQuotaBadge() {
     const badge = document.getElementById("quotaBadge");
-    if (!user) { badge.textContent = "-"; return; }
+    if (!user) { badge.textContent = "Ã¢â‚¬â€"; return; }
     if (user.is_admin) {
-      badge.textContent = "Admin - unlimited";
+      badge.textContent = "Admin Ã¢â‚¬â€ unlimited";
       badge.classList.add("admin");
     } else {
       badge.textContent = `${user.remaining} / ${user.limit} left today`;
@@ -545,7 +551,7 @@
       selectedSymbol = btn.dataset.symbol;
       const genBtn = document.getElementById('generateBtn');
       genBtn.disabled = false;
-      genBtn.textContent = `GENERATE SIGNAL - ${btn.textContent.replace('-','').trim()}`;
+      genBtn.textContent = `GENERATE SIGNAL Ã¢â‚¬â€ ${btn.textContent.replace('Ã¢â€”Â','').trim()}`;
       document.getElementById('result').classList.remove('active');
       if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
     });
@@ -574,7 +580,7 @@
         if (d.ready) {
           if (!approachingSummary) approachingSummary = `${sym} signal firing NOW`;
         } else {
-          if (!approachingSummary) approachingSummary = `${sym} setup forming - get ready`;
+          if (!approachingSummary) approachingSummary = `${sym} setup forming Ã¢â‚¬â€ get ready`;
         }
       } catch (e) {}
     }
@@ -644,13 +650,13 @@
 
     if (data.bias === 'BUY' || data.bias === 'SELL') {
       const img = data.bias === 'BUY' ? 'assets/buy.jpg' : 'assets/sell.jpg';
-      const badgeLabel = tier === 'A+' ? 'OK VERIFIED SETUP' : `OK TIER ${tier} SETUP`;
+      const badgeLabel = tier === 'A+' ? 'Ã¢Å“â€¦ VERIFIED SETUP' : `Ã¢Å“â€¦ TIER ${tier} SETUP`;
       resEl.innerHTML = `
         <div class="signal-card${tierClass}">
           <div class="signal-badge${tierClass}">${badgeLabel}</div>
           <img src="${img}" alt="${data.bias}" style="width:110px;height:110px;border-radius:14px;object-fit:cover;margin:6px 0 8px;border:2px solid currentColor;">
           <div class="signal-direction ${data.bias}">${data.bias}</div>
-          <div class="signal-meta">${data.symbol} - 5-MIN</div>
+          <div class="signal-meta">${data.symbol} OTC Ã‚Â· 5-MIN</div>
           <div class="signal-reason">${data.reason || ''}</div>
         </div>
         <div class="countdown-panel" id="countdownPanel">
@@ -672,7 +678,7 @@
     resEl.innerHTML = `
       <div class="wait-panel">
         <h3>NO VALID SIGNAL DETECTED YET</h3>
-        <p>Waiting for the next qualifying setup.<br>Try again in a moment or keep this page open - a market button will glow when a setup is forming.</p>
+        <p>Waiting for the next qualifying setup.<br>Try again in a moment or keep this page open Ã¢â‚¬â€ a market button will glow when a setup is forming.</p>
       </div>
     `;
     resEl.classList.add('active');
@@ -770,11 +776,11 @@ async function loadHistory() {
         const dirClass = s.direction === 'BUY' ? 'BUY' : 'SELL';
         const resLabel = s.resolved ? (s.result || 'PENDING') : 'PENDING';
         const resClass = s.resolved ? (s.result || 'PENDING') : 'PENDING';
-        const entry = s.entry_time ? new Date(s.entry_time).toLocaleString() : '-';
+        const entry = s.entry_time ? new Date(s.entry_time).toLocaleString() : 'Ã¢â‚¬â€';
         return `
           <div class="history-item ${resClass}">
             <div class="history-left">
-              <span class="sym">${s.symbol}</span>
+              <span class="sym">${s.symbol} OTC</span>
               <span class="time">${entry}</span>
             </div>
             <div class="history-right">
@@ -793,7 +799,25 @@ setInterval(() => {
     if (v && v.style.display !== 'none') loadHistory();
 }, 10000);
 
-  (async function boot() {
+  
+async function refreshMarketStatus() {
+  try {
+    const r = await fetch(API_BASE + '/api/market-status');
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.ok || !d.symbols) return;
+    for (const s of d.symbols) {
+      const btn = document.querySelector('.market-btn[data-symbol="' + s.app_symbol + '"]');
+      if (!btn) continue;
+      const span = btn.querySelector('span.mkt-mode') || document.createElement('span');
+      span.className = 'mkt-mode ' + (s.is_otc ? 'otc' : 'live');
+      span.textContent = s.is_otc ? 'OTC' : 'LIVE';
+      if (!span.parentNode) btn.appendChild(span);
+    }
+  } catch (e) {}
+}
+
+(async function boot() {
     if (token) {
       await initApp();
     } else {
@@ -802,10 +826,14 @@ setInterval(() => {
   })();
 </script>
 <div style="width:100%; text-align:center; margin-top:40px; padding:20px 0; font-size:11px; color:#8092c4; letter-spacing:1px;">
-  ( 2026 Karanka Multiverse. All rights reserved.
+  Ã‚Â© 2026 Karanka Multiverse. All rights reserved.
 </div>
 </body>
 </html>
+
+
+
+
 
 
 
